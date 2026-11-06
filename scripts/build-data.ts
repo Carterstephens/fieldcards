@@ -153,27 +153,37 @@ async function inatObservationPhotos(taxonId: number): Promise<Photo[]> {
 /** `names`: the AOS name first, then any alternate (xeno-canto follows IOC taxonomy, which splits some birds differently). */
 async function xenoCanto(names: string[]): Promise<Recording[]> {
   const out: Recording[] = [];
-  for (const kind of ['song', 'call'] as const) {
-    // Widen the search step by step: top-quality American recordings first, then anywhere
-    // (Hawaiʻi and at-sea recordings fall outside "america"), then any quality.
-    let rec: any;
-    search: for (const filters of ['q:A area:america', 'q:A', '']) {
+  const toRecording = (rec: any, kind: Recording['kind']): Recording => ({
+    url: rec.file,
+    kind,
+    author: rec.rec,
+    license: xcLicense(rec.lic),
+    source: rec.url.startsWith('//') ? `https:${rec.url}` : rec.url,
+    location: [rec.loc, rec.cnt].filter(Boolean).join(', '),
+  });
+  // Widen the search step by step: US and Canadian recordings first (birds can sound different
+  // farther south), then the rest of the Americas, then anywhere (some at-sea recordings have no
+  // country), then any quality. q:">C" means A or B.
+  const usCa = ['cnt:"United States"', 'cnt:canada'];
+  const filters = [...usCa.map((c) => `q:A ${c}`), ...usCa.map((c) => `q:">C" ${c}`), 'q:A area:america', 'q:A', ''];
+  const search = async (kind: 'song' | 'call') => {
+    for (const [tier, filter] of filters.entries()) {
       for (const name of names) {
-        const query = encodeURIComponent(`sp:"${name}" type:${kind} ${filters}`.trim());
+        const query = encodeURIComponent(`sp:"${name}" type:${kind} ${filter}`.trim());
         const data = await getJson(`https://xeno-canto.org/api/3/recordings?query=${query}&key=${XC_KEY}&per_page=50`);
-        rec = data?.recordings?.[0];
-        if (rec) break search;
+        if (data?.recordings?.length) return { recs: data.recordings as any[], local: tier < usCa.length * 2 };
       }
     }
-    if (!rec) continue;
-    out.push({
-      url: rec.file,
-      kind,
-      author: rec.rec,
-      license: xcLicense(rec.lic),
-      source: rec.url.startsWith('//') ? `https:${rec.url}` : rec.url,
-      location: [rec.loc, rec.cnt].filter(Boolean).join(', '),
-    });
+    return null;
+  };
+  const song = await search('song');
+  const call = await search('call');
+  if (song && !song.local && call?.local && call.recs.length > 1) {
+    // No local song (e.g. Barn Owl, which doesn't really sing): a second local call beats a foreign song.
+    out.push(toRecording(call.recs[0], 'call'), toRecording(call.recs[1], 'call'));
+  } else {
+    if (song) out.push(toRecording(song.recs[0], 'song'));
+    if (call) out.push(toRecording(call.recs[0], 'call'));
   }
   if (!out.length) {
     // Some rarely recorded birds only have recordings typed "other", "flight call", etc.

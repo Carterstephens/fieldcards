@@ -12,7 +12,7 @@ A static, Quizlet-style flashcard site for North American birds. It uses Vite, R
 - `scripts/sets.config.ts` holds each set's title, description and icon (`setMeta`) and the home-page sections (`setGroups`). To add a set, add its id to `SetId` in `scripts/types.ts`, give it an entry in `setMeta`, and place it in exactly one `setGroups` section; the build fails if a set is missing from `setGroups`.
 - `scripts/build-data.ts` gathers media for each seed:
   - photos from iNaturalist
-  - sounds from xeno-canto when `XC_API_KEY` is in `.env`, otherwise CC-licensed research-grade iNaturalist recordings
+  - sounds from xeno-canto when `XC_API_KEY` is in `.env`, otherwise CC-licensed research-grade iNaturalist recordings. xeno-canto searches try US and Canadian recordings before widening to the Americas and then anywhere. If a bird has no local song but has local calls, it gets two local calls instead (e.g. Barn Owl).
   - range maps from Wikidata P181 and Wikimedia Commons
   - summaries from Wikipedia
 - The three region sets (All Eastern / Central / Western) are not tagged in content. `regionMembership` in `build-data.ts` computes them from iNaturalist research-grade sighting counts for the states and provinces listed in `regions` (`sets.config.ts`). Counts are weighted by each region's total birding activity, and a species joins a region at ≥5 sightings and ≥5% share; the per-species shares are saved to `scripts/.cache/region-shares.json` for tuning.
