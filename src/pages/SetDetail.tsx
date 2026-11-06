@@ -96,6 +96,7 @@ export function SetDetail({ setId, store, update }: Props) {
               {[10, 20, 30, 50].map((n) => (
                 <option key={n} value={n}>{n}</option>
               ))}
+              <option value={0}>Whole set ({studying.length})</option>
             </select>
           </label>
           {studying.length > 0 ? (

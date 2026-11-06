@@ -13,6 +13,7 @@ export interface Store {
   progress: Record<string, Record<string, CardState>>;
   /** Species ids the user marked "Confident": skipped in every set until restored. */
   confident: string[];
+  /** sessionSize 0 means the whole set. */
   prefs: { prompt: PromptMode; sessionSize: number };
 }
 

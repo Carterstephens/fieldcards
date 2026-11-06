@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Flashcard, type Prompt } from '../components/Flashcard.tsx';
 import { setById, speciesById } from '../lib/data.ts';
 import { href } from '../lib/router.ts';
-import { pickSession, review, type Grade } from '../lib/srs.ts';
+import { pickSession, review, shuffle, type Grade } from '../lib/srs.ts';
 import { setConfident, type PromptMode, type Store } from '../lib/storage.ts';
 import type { Species } from '../types.ts';
 
@@ -39,7 +39,9 @@ export function Study({ setId, store, update }: Props) {
       const s = speciesById.get(id);
       return s && !confident.has(id) && (s.photos.length || s.audio.length);
     });
-    return pickSession(usable, store.progress[setId] ?? {}, store.prefs.sessionSize).map((id) => ({
+    // Whole set: every bird not marked confident, due or not.
+    const ids = store.prefs.sessionSize === 0 ? shuffle(usable) : pickSession(usable, store.progress[setId] ?? {}, store.prefs.sessionSize);
+    return ids.map((id) => ({
       id,
       prompt: choosePrompt(speciesById.get(id)!, mode),
     }));
