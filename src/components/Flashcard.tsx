@@ -62,7 +62,7 @@ export function Flashcard({ species: s, prompt, flipped }: Props) {
                 {s.summary}{' '}
                 {s.wikiUrl && (
                   <a href={s.wikiUrl} target="_blank" rel="noreferrer">
-                    Wikipedia ↗
+                    Wikipedia · CC BY-SA 4.0 ↗
                   </a>
                 )}
               </p>

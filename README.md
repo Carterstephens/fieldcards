@@ -39,4 +39,8 @@ Without a key, the build uses research-grade recordings from iNaturalist instead
 
 ## Credits and licenses
 
-Photos and recordings come from iNaturalist and xeno-canto contributors. Range maps come from Wikimedia Commons, and summaries come from Wikipedia. Every item is credited on its card with its author and Creative Commons license. Some media uses non-commercial (NC) licenses, so this project is meant for personal and educational use. Check the licenses before using it commercially.
+Photos and recordings come from iNaturalist and xeno-canto contributors. Range maps come from Wikimedia Commons, and summaries come from Wikipedia. Every item is credited on its card with its author and Creative Commons license, and links to its original page. Some media uses non-commercial (NC) licenses, so this project is meant for personal and educational use. Check the licenses before using it commercially.
+
+Media is shown unmodified and loaded from its original host; this repository doesn't store copies of any photos, recordings or maps. Wikipedia summaries are used under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). The app's own code and hand-written field notes carry no third-party license.
+
+The media is the work of its creators. If you're one of them and want something removed, open an issue.

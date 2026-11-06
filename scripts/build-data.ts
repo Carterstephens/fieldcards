@@ -194,7 +194,8 @@ async function xenoCanto(names: string[]): Promise<Recording[]> {
 }
 
 function xcLicense(url: string): string {
-  // e.g. //creativecommons.org/licenses/by-nc-sa/4.0/
+  // e.g. //creativecommons.org/licenses/by-nc-sa/4.0/ or //creativecommons.org/publicdomain/zero/1.0/
+  if (/publicdomain\/zero/.test(url ?? '')) return 'CC0';
   const m = url?.match(/licenses\/([a-z-]+)\/([\d.]+)/);
   return m ? `CC ${m[1].toUpperCase()} ${m[2]}` : 'See source';
 }
