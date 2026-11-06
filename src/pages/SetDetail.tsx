@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MasteryBar } from '../components/MasteryBar.tsx';
+import { SpeciesModal } from '../components/SpeciesModal.tsx';
 import { setById, speciesById } from '../lib/data.ts';
 import { href } from '../lib/router.ts';
 import { boxCounts } from '../lib/srs.ts';
@@ -26,6 +27,8 @@ export function SetDetail({ setId, store, update }: Props) {
   const set = setById.get(setId);
   const [tab, setTab] = useState<'studying' | 'confident'>('studying');
   const [confirmReset, setConfirmReset] = useState(false);
+  // Index into the current tab's list; null when no bird is open.
+  const [open, setOpen] = useState<number | null>(null);
   if (!set) return <p>Set not found. <a href={href.home()}>Back to sets</a></p>;
 
   const progress = store.progress[setId] ?? {};
@@ -38,6 +41,20 @@ export function SetDetail({ setId, store, update }: Props) {
 
   const setPrefs = (p: Partial<Store['prefs']>) => update((s) => ({ ...s, prefs: { ...s.prefs, ...p } }));
   const toggleConfident = (id: string, value: boolean) => update((s) => setConfident(s, [id], value));
+  const shown = tab === 'studying' ? studying : confident;
+  const switchTab = (t: typeof tab) => {
+    setTab(t);
+    setOpen(null);
+  };
+  const birdButton = (bird: Species, i: number) => (
+    <button className="bird-open" onClick={() => setOpen(i)} aria-label={`Open ${bird.common} details`}>
+      <Thumb bird={bird} />
+      <div>
+        <strong>{bird.common}</strong>
+        <em>{bird.scientific}</em>
+      </div>
+    </button>
+  );
 
   return (
     <div className="set-detail">
@@ -90,25 +107,21 @@ export function SetDetail({ setId, store, update }: Props) {
       </section>
 
       <div className="tabs" role="tablist">
-        <button role="tab" aria-selected={tab === 'studying'} className={tab === 'studying' ? 'active' : ''} onClick={() => setTab('studying')}>
+        <button role="tab" aria-selected={tab === 'studying'} className={tab === 'studying' ? 'active' : ''} onClick={() => switchTab('studying')}>
           Studying <span className="count">{studying.length}</span>
         </button>
-        <button role="tab" aria-selected={tab === 'confident'} className={tab === 'confident' ? 'active' : ''} onClick={() => setTab('confident')}>
+        <button role="tab" aria-selected={tab === 'confident'} className={tab === 'confident' ? 'active' : ''} onClick={() => switchTab('confident')}>
           ✓ Confident <span className="count">{confident.length}</span>
         </button>
       </div>
 
       {tab === 'studying' ? (
         <ul className="species-grid">
-          {studying.map((b) => {
+          {studying.map((b, i) => {
             const st = progress[b.id];
             return (
               <li key={b.id}>
-                <Thumb bird={b} />
-                <div>
-                  <strong>{b.common}</strong>
-                  <em>{b.scientific}</em>
-                </div>
+                {birdButton(b, i)}
                 <span className={`box-badge b${st?.box ?? 0}`} title={st ? `Box ${st.box} of 5` : 'Not studied yet'}>
                   {st ? st.box : 'new'}
                 </span>
@@ -133,20 +146,24 @@ export function SetDetail({ setId, store, update }: Props) {
             </button>
           </p>
           <ul className="species-grid">
-            {confident.map((b) => (
-              <li key={b.id}>
-                <label className="conf-item">
-                  <input type="checkbox" checked onChange={() => toggleConfident(b.id, false)} />
-                  <Thumb bird={b} />
-                  <div>
-                    <strong>{b.common}</strong>
-                    <em>{b.scientific}</em>
-                  </div>
-                </label>
+            {confident.map((b, i) => (
+              <li key={b.id} className="conf-item">
+                <input
+                  type="checkbox"
+                  checked
+                  onChange={() => toggleConfident(b.id, false)}
+                  aria-label={`Return ${b.common} to study`}
+                  title="Uncheck to return to study"
+                />
+                {birdButton(b, i)}
               </li>
             ))}
           </ul>
         </>
+      )}
+
+      {open !== null && shown.length > 0 && (
+        <SpeciesModal birds={shown} index={Math.min(open, shown.length - 1)} onIndex={setOpen} onClose={() => setOpen(null)} />
       )}
 
       <div className="reset">
